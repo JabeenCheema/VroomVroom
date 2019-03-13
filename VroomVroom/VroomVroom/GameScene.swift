@@ -11,7 +11,7 @@ import GameplayKit
 
 class GameScene: SKScene {
     
-    
+    // whenever the scene is called this method is initialized
     override func didMove(to view: SKView) {
         
         
