@@ -119,6 +119,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
         rightCar.physicsBody?.categoryBitMask = ColliderType.CAR_COLLIDER
         rightCar.physicsBody?.contactTestBitMask = ColliderType.ITEM_COLLIDER_1
         rightCar.physicsBody?.collisionBitMask = 0
+        
+        let scoreBackGround = SKShapeNode(rect: CGRect(x: -self.size.width/2 + 70, y: self.size.height/2 - 130, width: 180, height: 80), cornerRadius: 20)
+        scoreBackGround.zPosition = 4
+        scoreBackGround.fillColor = SKColor.black.withAlphaComponent(0.3)
+        scoreBackGround.strokeColor = SKColor.black.withAlphaComponent(0.3)
+        addChild(scoreBackGround)
     }
 
     // we want the cars moving straight on the road
