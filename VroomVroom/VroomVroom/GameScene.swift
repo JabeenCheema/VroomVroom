@@ -9,7 +9,7 @@
 import SpriteKit
 import GameplayKit
 
-class GameScene: SKScene {
+class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collision to work we need Physics
     
     // now we want both the car properties here
     
@@ -37,10 +37,12 @@ class GameScene: SKScene {
         //set the anchor point of the scene, we are centering it
         self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         setUp()
-        // until I did have have this Timer part set up when I ran my app I just saw one road line but this will make the line appear every 0.1 sec
+        physicsWorld.contactDelegate = self 
+        // until I did not have have this Timer part set up when I ran my app I just saw one road line but this will make the line appear every 0.1 sec
         Timer.scheduledTimer(timeInterval: TimeInterval(0.1), target: self, selector: #selector(GameScene.createRoadLines), userInfo: nil, repeats: true)
         Timer.scheduledTimer(timeInterval: (TimeInterval(Helper().randomBetweenTwoNums(firstNumber: 0, secondNumber: 1.8))), target: self, selector: #selector(GameScene.leftTraffic), userInfo: nil, repeats: true)
         Timer.scheduledTimer(timeInterval: (TimeInterval(Helper().randomBetweenTwoNums(firstNumber: 0, secondNumber: 1.8))), target: self, selector: #selector(GameScene.rightTraffic), userInfo: nil, repeats: true)
+        Timer.scheduledTimer(timeInterval: TimeInterval(0.2), target: self, selector: #selector(GameScene.removeItems), userInfo: nil, repeats: true)
     }
 
     // default method
@@ -51,6 +53,24 @@ class GameScene: SKScene {
             moveRightCar(rightSide: rightCarToMoveRight)
         }
         showRoadLine()  // this update func calls showRoadLine 60 times so everytime it will subtract your position by 30
+    }
+    
+    // whenever a collision happens
+    // there is no collision detected yet because we initialized the bodies as cicrcleRadius (look in funcs leftTraffic and rightTraffic), after this we need to go to the GameScene.sks select the cars and the Physics Def Bounding rectangle
+    // our car also goes down so we also need to disable gravity 
+    func didBegin(_ contact: SKPhysicsContact) {
+        var firstBody = SKPhysicsBody()
+        var secondBody = SKPhysicsBody()
+        // everytime a collision happens we have to identify which body is our car
+        if contact.bodyA.node?.name == "leftCar" || contact.bodyA.node?.name == "rightCar" {
+            firstBody = contact.bodyA
+            secondBody = contact.bodyB
+        } else {
+            firstBody = contact.bodyB
+            secondBody = contact.bodyA
+        }
+        // so we can easily remove when the collision happens
+    firstBody.node?.removeFromParent()
     }
     
     // now we want the user to be able to move the cars on the screen, after this func we declare more variables
@@ -85,6 +105,14 @@ class GameScene: SKScene {
         leftCar = self.childNode(withName: "leftCar") as! SKSpriteNode
         rightCar = self.childNode(withName: "rightCar") as! SKSpriteNode
         centerPoint = self.frame.size.width / self.frame.size.height // getting the exact center
+        
+        leftCar.physicsBody?.categoryBitMask = ColliderType.CAR_COLLIDER
+        leftCar.physicsBody?.contactTestBitMask = ColliderType.ITEM_COLLIDER
+        leftCar.physicsBody?.collisionBitMask = 0
+        
+        rightCar.physicsBody?.categoryBitMask = ColliderType.CAR_COLLIDER
+        rightCar.physicsBody?.contactTestBitMask = ColliderType.ITEM_COLLIDER_1
+        rightCar.physicsBody?.collisionBitMask = 0
     }
 
     // we want the cars moving straight on the road
@@ -133,7 +161,7 @@ class GameScene: SKScene {
     }
 
     
-    func removeItems() {
+    @objc func removeItems() {
         for child in children {   // children - all the nodes in my GameScene
             if child.position.y < -self.size.height - 100 { // we are creating the (white lines on the road)lines from the upper side but the lines go down so we use -self
                 // so everytime the strips go down it will be removed my the parent, this is useful for optimization
@@ -201,10 +229,15 @@ class GameScene: SKScene {
             leftTrafficItem.position.x = -280
         }
         leftTrafficItem.position.y = 700
-    addChild(leftTrafficItem)
+        // initialize physicsbody
+        leftTrafficItem.physicsBody = SKPhysicsBody(circleOfRadius: leftTrafficItem.size.height/2)
+        leftTrafficItem.physicsBody?.categoryBitMask = ColliderType.ITEM_COLLIDER
+        leftTrafficItem.physicsBody?.collisionBitMask = 0
+        leftTrafficItem.physicsBody?.affectedByGravity = false
+        addChild(leftTrafficItem)
     }
 
-   @objc func rightTraffic() {       // now we have cars showing on both sides 
+   @objc func rightTraffic() {       // now we have cars showing on both sides
         let rightTrafficItem: SKSpriteNode!
         let randomNum = Helper().randomBetweenTwoNums(firstNumber: 1, secondNumber: 8)
         switch Int(randomNum) {
@@ -234,6 +267,11 @@ class GameScene: SKScene {
             rightTrafficItem.position.x = 280
         }
         rightTrafficItem.position.y = 700
+    // initialize physicsbody
+    rightTrafficItem.physicsBody = SKPhysicsBody(circleOfRadius: rightTrafficItem.size.height/2)
+    rightTrafficItem.physicsBody?.categoryBitMask = ColliderType.ITEM_COLLIDER_1
+    rightTrafficItem.physicsBody?.collisionBitMask = 0
+    rightTrafficItem.physicsBody?.affectedByGravity = false
         addChild(rightTrafficItem)
     }
 
