@@ -40,6 +40,7 @@ class GameScene: SKScene {
         // until I did have have this Timer part set up when I ran my app I just saw one road line but this will make the line appear every 0.1 sec
         Timer.scheduledTimer(timeInterval: TimeInterval(0.1), target: self, selector: #selector(GameScene.createRoadLines), userInfo: nil, repeats: true)
         Timer.scheduledTimer(timeInterval: (TimeInterval(Helper().randomBetweenTwoNums(firstNumber: 0, secondNumber: 1.8))), target: self, selector: #selector(GameScene.leftTraffic), userInfo: nil, repeats: true)
+        Timer.scheduledTimer(timeInterval: (TimeInterval(Helper().randomBetweenTwoNums(firstNumber: 0, secondNumber: 1.8))), target: self, selector: #selector(GameScene.rightTraffic), userInfo: nil, repeats: true)
     }
 
     // default method
@@ -119,7 +120,7 @@ class GameScene: SKScene {
         })
         enumerateChildNodes(withName: "rightRoadLine", using: { (roadLine, stop) in
             let line = roadLine as! SKShapeNode
-            line.position.y -= 30
+            line.position.y -= 30  // this is setting the speed of moving it
         })
         enumerateChildNodes(withName: "orangeCar", using: { (leftCar, stop) in
             let car = leftCar as! SKSpriteNode
@@ -202,4 +203,44 @@ class GameScene: SKScene {
         leftTrafficItem.position.y = 700
     addChild(leftTrafficItem)
     }
+
+   @objc func rightTraffic() {       // now we have cars showing on both sides 
+        let rightTrafficItem: SKSpriteNode!
+        let randomNum = Helper().randomBetweenTwoNums(firstNumber: 1, secondNumber: 8)
+        switch Int(randomNum) {
+        case 1...4:
+            rightTrafficItem = SKSpriteNode(imageNamed: "orangeCar")
+            rightTrafficItem.name = "orangeCar"
+            break
+        case 5...8:
+            rightTrafficItem = SKSpriteNode(imageNamed: "greenCar")
+            rightTrafficItem.name = "greenCar"
+            break
+        default:
+            rightTrafficItem = SKSpriteNode(imageNamed: "orangeCar")
+            rightTrafficItem.name = "orangeCar"
+        }
+        rightTrafficItem.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        rightTrafficItem.zPosition = 10
+        let randomNumber = Helper().randomBetweenTwoNums(firstNumber: 1, secondNumber: 10)
+        switch Int(randomNumber) {
+        case 1...4:
+            rightTrafficItem.position.x = 280
+            break
+        case 5...10:
+            rightTrafficItem.position.x = 100
+            break
+        default:
+            rightTrafficItem.position.x = 280
+        }
+        rightTrafficItem.position.y = 700
+        addChild(rightTrafficItem)
+    }
+
+
+
+
+
+
+
 }
