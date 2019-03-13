@@ -25,6 +25,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
     var rightCarAtLeft = false
     // after the func tocuhesbegan we create these vars
     var centerPoint: CGFloat!
+    var score = 0
     // we want to more cars based on position
     let leftCarMinX: CGFloat = -280
     let leftCarMaxX: CGFloat = -100  // we want to make sure it doesn't go past the middle lane
@@ -34,6 +35,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
     
     var countDown = 1
     var stopEverything = true
+    
+    // to keep track of the score
+    var scoreText = SKLabelNode()
+    var gameSettings = Settings.sharedInstance
     
     
     // whenever the scene is called this method is initialized
@@ -45,9 +50,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
         // until I did not have have this Timer part set up when I ran my app I just saw one road line but this will make the line appear every 0.1 sec
         Timer.scheduledTimer(timeInterval: TimeInterval(0.1), target: self, selector: #selector(GameScene.createRoadLines), userInfo: nil, repeats: true)
         Timer.scheduledTimer(timeInterval: TimeInterval(1), target: self, selector: #selector(GameScene.startCountDown), userInfo: nil, repeats: true)
-        Timer.scheduledTimer(timeInterval: (TimeInterval(Helper().randomBetweenTwoNums(firstNumber: 0, secondNumber: 1.8))), target: self, selector: #selector(GameScene.leftTraffic), userInfo: nil, repeats: true)
-        Timer.scheduledTimer(timeInterval: (TimeInterval(Helper().randomBetweenTwoNums(firstNumber: 0, secondNumber: 1.8))), target: self, selector: #selector(GameScene.rightTraffic), userInfo: nil, repeats: true)
-        Timer.scheduledTimer(timeInterval: TimeInterval(0.2), target: self, selector: #selector(GameScene.removeItems), userInfo: nil, repeats: true)
+        Timer.scheduledTimer(timeInterval: (TimeInterval(Helper().randomBetweenTwoNums(firstNumber: 0.8, secondNumber: 1.8))), target: self, selector: #selector(GameScene.leftTraffic), userInfo: nil, repeats: true)
+        Timer.scheduledTimer(timeInterval: (TimeInterval(Helper().randomBetweenTwoNums(firstNumber: 0.8, secondNumber: 1.8))), target: self, selector: #selector(GameScene.rightTraffic), userInfo: nil, repeats: true)
+        Timer.scheduledTimer(timeInterval: TimeInterval(0.5), target: self, selector: #selector(GameScene.removeItems), userInfo: nil, repeats: true)
+        let deadTime = DispatchTime.now() + 1
+        DispatchQueue.main.asyncAfter(deadline: deadTime) {
+            Timer.scheduledTimer(timeInterval: TimeInterval(1), target: self, selector: #selector(GameScene.increaseScore), userInfo: nil, repeats: true)
+        }
     }
 
     // default method
@@ -125,6 +134,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
         scoreBackGround.fillColor = SKColor.black.withAlphaComponent(0.3)
         scoreBackGround.strokeColor = SKColor.black.withAlphaComponent(0.3)
         addChild(scoreBackGround)
+        
+        scoreText.name = "score"
+        scoreText.fontName = "AvenirNext-Bold"
+        scoreText.fontColor = SKColor.white
+        scoreText.position = CGPoint(x: -self.size.width/2 + 160, y: self.size.height/2 - 110)
+        scoreText.fontSize = 50
+        scoreText.zPosition = 4
+        addChild(scoreText)
     }
 
     // we want the cars moving straight on the road
@@ -164,11 +181,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
         })
         enumerateChildNodes(withName: "orangeCar", using: { (leftCar, stop) in
             let car = leftCar as! SKSpriteNode
-            car.position.y -= 30
+            car.position.y -= 15
         })
         enumerateChildNodes(withName: "greenCar", using: { (rightCar, stop) in
             let car = rightCar as! SKSpriteNode
-            car.position.y -= 30
+            car.position.y -= 15
         })
     }
 
@@ -292,6 +309,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
 }
 
     func afterCollision() {
+        if gameSettings.highScore < score {
+            gameSettings.highScore = score
+        }
         let menuScene = SKScene(fileNamed: "GameMenu")!
         menuScene.scaleMode = .aspectFill
         view?.presentScene(menuScene, transition: SKTransition.doorsCloseHorizontal(withDuration: TimeInterval(2)))
@@ -323,5 +343,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
         }
     }
     
+    // to keep track of the score
+    @objc func increaseScore() {
+        if !stopEverything {
+            score += 1
+            scoreText.text = String(score)
+        }
+    }
     
 }

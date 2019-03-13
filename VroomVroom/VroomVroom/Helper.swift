@@ -24,3 +24,14 @@ class Helper: NSObject {
 
 // so the func is helping us get a random num from a range
 // which we set up in our func leftTraffic 
+
+// to save  the score
+class Settings {
+    static let sharedInstance = Settings()
+    
+    private init() {
+        
+    }
+    
+    var highScore = 0 
+}
