@@ -16,8 +16,21 @@ class GameScene: SKScene {
     var leftCar = SKSpriteNode()
     var rightCar = SKSpriteNode()
     
+    // now in order to move our cars
+    var canMove = false
+    var leftCarToMoveLeft = true
+    var rightCarToMoveRight = true
     
+    var leftCarAtRight = false
+    var rightCarAtLeft = false
+    // after the func tocuhesbegan we create these vars
+    var centerPoint: CGFloat!
+    // we want to more cars based on position
+    let leftCarMinX: CGFloat = -280
+    let leftCarMaxX: CGFloat = -100  // we want to make sure it doesn't go past the middle lane 
     
+    let rightCarMinX: CGFloat = 100
+    let rightCarMaxM: CGFloat = 280
     
     // whenever the scene is called this method is initialized
     override func didMove(to view: SKView) {
@@ -34,11 +47,38 @@ class GameScene: SKScene {
         showRoadLine()  // this update func calls showRoadLine 60 times so everytime it will subtract your position by 30
     }
     
+    // now we want the user to be able to move the cars on the screen, after this func we declare more variables
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let touchLocation = touch.location(in: self)
+            if touchLocation.x > centerPoint { // meaning on the right size
+                if rightCarAtLeft {
+                    rightCarAtLeft = false  // if right car is on the leftside of its lane
+                    rightCarToMoveRight = true  // which is its initial position
+                } else {
+                    rightCarAtLeft = true
+                    rightCarToMoveRight = false
+                }
+            } else {
+                if leftCarAtRight {
+                    leftCarAtRight = false
+                    leftCarToMoveLeft = true  // which is its initial position
+                } else {
+                    leftCarAtRight = true
+                    leftCarToMoveLeft = false
+                }
+            }
+        canMove = true   // if the user touches the screen they will be able to move the car
+        }
+    }
+    
+    
     
     // instead of puttng it in the viewdidLoad we are doing a func
     func setUp() {
         leftCar = self.childNode(withName: "leftCar") as! SKSpriteNode
         rightCar = self.childNode(withName: "rightCar") as! SKSpriteNode
+        centerPoint = self.frame.size.width / self.frame.size.height // getting the exact center
     }
 
     // we want the cars moving straight on the road
@@ -78,4 +118,16 @@ class GameScene: SKScene {
         })
     }
 
+    
+    func removeItems() {
+        for child in children {   // children - all the nodes in my GameScene
+            if child.position.y < -self.size.height - 100 { // we are creating the (white lines on the road)lines from the upper side but the lines go down so we use -self
+                // so everytime the strips go down it will be removed my the parent, this is useful for optimization
+            child.removeFromParent()
+        }
+    }
+    }
+    
+    
+    
 }
