@@ -32,6 +32,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
     let rightCarMinX: CGFloat = 100
     let rightCarMaxM: CGFloat = 280
     
+    var countDown = 1
+    var stopEverything = true
+    
+    
     // whenever the scene is called this method is initialized
     override func didMove(to view: SKView) {
         //set the anchor point of the scene, we are centering it
@@ -40,6 +44,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
         physicsWorld.contactDelegate = self 
         // until I did not have have this Timer part set up when I ran my app I just saw one road line but this will make the line appear every 0.1 sec
         Timer.scheduledTimer(timeInterval: TimeInterval(0.1), target: self, selector: #selector(GameScene.createRoadLines), userInfo: nil, repeats: true)
+        Timer.scheduledTimer(timeInterval: TimeInterval(1), target: self, selector: #selector(GameScene.startCountDown), userInfo: nil, repeats: true)
         Timer.scheduledTimer(timeInterval: (TimeInterval(Helper().randomBetweenTwoNums(firstNumber: 0, secondNumber: 1.8))), target: self, selector: #selector(GameScene.leftTraffic), userInfo: nil, repeats: true)
         Timer.scheduledTimer(timeInterval: (TimeInterval(Helper().randomBetweenTwoNums(firstNumber: 0, secondNumber: 1.8))), target: self, selector: #selector(GameScene.rightTraffic), userInfo: nil, repeats: true)
         Timer.scheduledTimer(timeInterval: TimeInterval(0.2), target: self, selector: #selector(GameScene.removeItems), userInfo: nil, repeats: true)
@@ -71,6 +76,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
         }
         // so we can easily remove when the collision happens
     firstBody.node?.removeFromParent()
+        afterCollision()
     }
     
     // now we want the user to be able to move the cars on the screen, after this func we declare more variables
@@ -200,6 +206,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
     }
 
     @objc func leftTraffic() {
+        if !stopEverything{
         let leftTrafficItem: SKSpriteNode!
         let randomNum = Helper().randomBetweenTwoNums(firstNumber: 1, secondNumber: 8)
         switch Int(randomNum) {
@@ -236,8 +243,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
         leftTrafficItem.physicsBody?.affectedByGravity = false
         addChild(leftTrafficItem)
     }
+}
 
    @objc func rightTraffic() {       // now we have cars showing on both sides
+    if !stopEverything{
         let rightTrafficItem: SKSpriteNode!
         let randomNum = Helper().randomBetweenTwoNums(firstNumber: 1, secondNumber: 8)
         switch Int(randomNum) {
@@ -274,11 +283,39 @@ class GameScene: SKScene, SKPhysicsContactDelegate {  // in order to get collisi
     rightTrafficItem.physicsBody?.affectedByGravity = false
         addChild(rightTrafficItem)
     }
+}
 
-
-
-
-
-
-
+    func afterCollision() {
+        let menuScene = SKScene(fileNamed: "GameMenu")!
+        menuScene.scaleMode = .aspectFill
+        view?.presentScene(menuScene, transition: SKTransition.doorsCloseHorizontal(withDuration: TimeInterval(2)))
+    }
+// initializing countdown
+    @objc func startCountDown() {
+        if countDown > 0 {
+            if countDown < 4 {
+                let countDownLabel = SKLabelNode()
+                countDownLabel.fontName = "AvenirNext-Bold"
+                countDownLabel.fontColor = SKColor.white
+                countDownLabel.fontSize = 300
+                countDownLabel.text = String(countDown)
+                countDownLabel.position = CGPoint(x: 0, y: 0)
+                countDownLabel.zPosition = 300
+                countDownLabel.name = "cLabel"
+                countDownLabel.horizontalAlignmentMode = .center
+                addChild(countDownLabel)
+                
+                let deadTime = DispatchTime.now() + 0.5
+                DispatchQueue.main.asyncAfter(deadline: deadTime, execute: {
+                    countDownLabel.removeFromParent()
+                })
+            }
+            countDown += 1
+            if countDown == 4 {
+                self.stopEverything = false
+            }
+        }
+    }
+    
+    
 }
